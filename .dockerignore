@@ -2,3 +2,4 @@ config-loader.sh
 settings.json
 config/*
 node_modules/*
+.gitignore

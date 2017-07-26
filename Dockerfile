@@ -1,4 +1,3 @@
-#FROM alpine:latest
 FROM node:boron
 
 LABEL author = "nynjacypher"
