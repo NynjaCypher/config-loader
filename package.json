@@ -1,0 +1,14 @@
+{
+  "name": "config-loader",
+  "version": "1.0.0",
+  "description": "Kubernetes Configuration Loader",
+  "author": "Jamie Campbell <jae.campbell@btinternet.com>",
+  "main": "server.js",
+  "license": "MIT",
+  "dependencies": {
+    "fs-extra": "^4.0.0",
+    "lodash": "^4.17.4",
+    "jsonfile": "^3.0.1",
+    "glob": "^7.1.2"
+  }
+}
