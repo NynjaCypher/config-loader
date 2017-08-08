@@ -97,8 +97,11 @@ jsonfile.readFile(mappingsPath, (err, obj) => {
                   console.log('File \'' + file + '\' successfully symlinked to \'' + destination + '\'.')
                 })
                 .catch(err => {
-                  if(err.errno == -17)
-                    console.error('Error: Symlink \'' + destination + '\' already exists.')
+                  /*if(err.errno == -17)
+                    console.error('Error: Symlink \'' + destination + '\' already exists.')*/
+                  
+                  if(err.errno != -17)
+                    console.error('Error: ' + err)
                 })
               break;
             default:
