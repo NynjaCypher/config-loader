@@ -16,6 +16,10 @@ var globalCopyOptions = { preserveTimestamps: true }
 globalCopyOptions.overwrite = Boolean(process.env.COPY_OVERWRITE) // default: false
 globalCopyOptions.errorOnExist = Boolean(process.env.COPY_ERROR_ON_EXISTS) // default: false
 
+var defaultMode = process.env.DEFAULT_MODE
+if(defaultMode === undefined)
+  defaultMode = 'copy'
+
 var filesHandled = []
 
 jsonfile.readFile(mappingsPath, (err, obj) => {
@@ -40,7 +44,7 @@ jsonfile.readFile(mappingsPath, (err, obj) => {
         if(_.has(mapping, 'mode') && (mapping.mode === 'copy' || mapping.mode === 'symlink')) {
           mode = mapping.mode
         }else {
-          mode = 'symlink'
+          mode = defaultMode
         }
         
         let copyOptions = Object.assign({}, globalCopyOptions) // override
