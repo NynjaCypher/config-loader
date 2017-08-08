@@ -39,9 +39,6 @@ jsonfile.readFile(mappingsPath, (err, obj) => {
           mode = 'symlink'
         }
         
-        /*if(_.has(mapping, 'matches')) { // Probably not going to go ahead with this, as it's simple enough with the order of the inputs
-          // TODO: Implement
-        }else {*/
         files.filter((file) => !filesHandled.includes(file)).forEach((file) => {
           var destination = mapping.destination
         
@@ -95,7 +92,6 @@ jsonfile.readFile(mappingsPath, (err, obj) => {
               break;
           }
         })
-        //}
       })
     }
   }
