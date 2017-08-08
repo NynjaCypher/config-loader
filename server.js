@@ -5,7 +5,11 @@ const glob = require('glob')
 
 var mappingsPath = process.env.MAPPINGS
 
-var copyOptions = { preserveTimestamps: true }
+var configPath = process.env.CONFIG_DIR
+if(configPath === undefined)
+  configPath = "/config/"
+else if(!configPath.toString().endsWith('/'))
+  configPath = configPath.toString() + '/'
 
 if(process.env.COPY_OVERWRITE == true)
   copyOptions.overwrite = true
@@ -59,7 +63,10 @@ jsonfile.readFile(mappingsPath, (err, obj) => {
             }
           }
           
-          // should we handle here, in each case, or after? depends on what sideeffects we want to avoid
+          if(!file.startsWith('/'))
+            file = configPath + file
+          
+          // should we handle here, in each case, or after? depends on what side-effects we want to avoid
           filesHandled.push(file)
           
           switch(mode) {
@@ -69,9 +76,6 @@ jsonfile.readFile(mappingsPath, (err, obj) => {
                 .catch(err => console.error(err))
               break;
             case 'symlink':
-                if(!file.startsWith('/'))
-                  file = './' + file
-                
                 Promise.resolve({
                   then: (resolve, reject) => {
                     fs.symlink(file, destination, 'file', (err) => {
@@ -81,7 +85,7 @@ jsonfile.readFile(mappingsPath, (err, obj) => {
                   }
                 })
                 .then(() => {
-                  console.log('File \'' + file + '\' successfully symlinked to \'' + destination + '\'.') 
+                  console.log('File \'' + file + '\' successfully symlinked to \'' + destination + '\'.')
                 })
                 .catch(err => {
                   if(err.errno == -17)
