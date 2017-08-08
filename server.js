@@ -11,10 +11,10 @@ if(configPath === undefined)
 else if(!configPath.toString().endsWith('/'))
   configPath = configPath.toString() + '/'
 
-if(process.env.COPY_OVERWRITE == true)
-  copyOptions.overwrite = true
-if(process.env.COPY_ERROR_ON_EXISTS == true)
-  copyOptions.errorOnExist = true
+var globalCopyOptions = { preserveTimestamps: true }
+
+globalCopyOptions.overwrite = Boolean(process.env.COPY_OVERWRITE) // default: false
+globalCopyOptions.errorOnExist = Boolean(process.env.COPY_ERROR_ON_EXISTS) // default: false
 
 var filesHandled = []
 
@@ -41,6 +41,15 @@ jsonfile.readFile(mappingsPath, (err, obj) => {
           mode = mapping.mode
         }else {
           mode = 'symlink'
+        }
+        
+        let copyOptions = Object.assign({}, globalCopyOptions) // override
+        if(_.has(mapping, 'flags')) {
+          if(_.has(mapping.flags, 'copyOverwrite'))
+            copyOptions.overwrite = Boolean(flags.copyOverwrite)
+          
+          if(_.has(mapping.flags, 'errorOnExists'))
+            copyOptions.errorOnExist = Boolean(flags.errorOnExists)
         }
         
         files.filter((file) => !filesHandled.includes(file)).forEach((file) => {
