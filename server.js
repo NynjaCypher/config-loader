@@ -5,12 +5,6 @@ const glob = require('glob')
 
 var mappingsPath = process.env.MAPPINGS
 
-var configPath = process.env.CONFIG_DIR
-if(configPath === undefined)
-  configPath = "/config/"
-else if(!configPath.toString().endsWith('/'))
-  configPath = configPath.toString() + '/'
-
 var globalCopyOptions = { preserveTimestamps: true }
 
 globalCopyOptions.overwrite = Boolean(process.env.COPY_OVERWRITE) // default: false
@@ -21,6 +15,11 @@ if(defaultMode === undefined)
   defaultMode = 'copy'
 
 var filesHandled = []
+
+function wrapConfigPath(path) {
+  if(!path.toString().endsWith('/'))
+    return path.toString() + '/'
+}
 
 jsonfile.readFile(mappingsPath, (err, obj) => {
   if(err)
@@ -76,8 +75,10 @@ jsonfile.readFile(mappingsPath, (err, obj) => {
             }
           }
           
+          path = wrapConfigPath(x)
+          
           if(!file.startsWith('/'))
-            file = configPath + file
+            file = path + file
           
           // should we handle here, in each case, or after? depends on what side-effects we want to avoid
           filesHandled.push(file)
