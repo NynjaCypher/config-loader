@@ -3,18 +3,21 @@ const _ = require('lodash')
 const jsonfile = require('jsonfile')
 const glob = require('glob')
 
-var mappingsPath = process.env.MAPPINGS
+const octal = /^([0-7]){3}$/
+const symbolic = /^(?:[ugoa][+\-=]r?w?x?,?){1,3}$/
 
-var globalCopyOptions = { preserveTimestamps: true }
+const mappingsPath = process.env.MAPPINGS
+
+let globalCopyOptions = { preserveTimestamps: true }
 
 globalCopyOptions.overwrite = Boolean(process.env.COPY_OVERWRITE) // default: false
 globalCopyOptions.errorOnExist = Boolean(process.env.COPY_ERROR_ON_EXISTS) // default: false
 
-var defaultMode = process.env.DEFAULT_MODE
+let defaultMode = process.env.DEFAULT_MODE
 if(defaultMode === undefined)
   defaultMode = 'copy'
 
-var filesHandled = []
+let filesHandled = []
 
 function wrapConfigPath(path) {
   if(!path.toString().endsWith('/'))
@@ -25,7 +28,7 @@ jsonfile.readFile(mappingsPath, (err, obj) => {
   if(err)
     throw err
   
-  var mappings = obj 
+  const mappings = obj 
   
   if(_.isEmpty(mappings))
     throw new Error('Mappings file empty!')
@@ -33,18 +36,22 @@ jsonfile.readFile(mappingsPath, (err, obj) => {
   console.log('Mappings loaded.')
   
   for(x in mappings) {
-    var input = mappings[x]
+    let input = mappings[x]
     
     for(y in input) {
       glob(y, { cwd: x }, (er, files) => {
-        var mapping = input[y]
+        let mapping = input[y]
         
-        var mode
+        let mode
         if(_.has(mapping, 'mode') && (mapping.mode === 'copy' || mapping.mode === 'symlink')) {
           mode = mapping.mode
         }else {
           mode = defaultMode
         }
+        
+        let accessMode
+        if(_.has(mapping, 'accessMode'))
+        	accessMode = parseAccessMode(mapping.accessMode)
         
         let copyOptions = Object.assign({}, globalCopyOptions) // override
         if(_.has(mapping, 'flags')) {
@@ -56,7 +63,7 @@ jsonfile.readFile(mappingsPath, (err, obj) => {
         }
         
         files.filter((file) => !filesHandled.includes(file)).forEach((file) => {
-          var destination = mapping.destination
+          let destination = mapping.destination
         
           if(_.has(mapping, 'rename')) {
             // TODO: Implement
@@ -117,3 +124,10 @@ jsonfile.readFile(mappingsPath, (err, obj) => {
     }
   }
 })
+
+function parseAccessMode(str) {
+	str = String(str)
+	
+	let octalMatch = octal.exec(str)
+	if(octalMatch) return str
+}
