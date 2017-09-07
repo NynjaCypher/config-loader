@@ -13,7 +13,8 @@
     "fs-extra": "^4.0.0",
     "lodash": "^4.17.4",
     "jsonfile": "^3.0.1",
-    "glob": "^7.1.2"
+    "glob": "^7.1.2",
+    "async": "^2.5.0"
   },
   "repository": {
   	"type": "git",

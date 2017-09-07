@@ -2,6 +2,8 @@ const fs = require('fs-extra')
 const _ = require('lodash')
 const jsonfile = require('jsonfile')
 const glob = require('glob')
+const exec = require('child_process').exec
+const async = require('async')
 
 const octal = /^([0-7]){3}$/
 const symbolic = /^(?:[ugoa][+\-=]r?w?x?,?){1,3}$/
@@ -51,7 +53,7 @@ jsonfile.readFile(mappingsPath, (err, obj) => {
         
         let accessMode
         if(_.has(mapping, 'accessMode'))
-        	accessMode = parseAccessMode(mapping.accessMode)
+        	accessMode = parseAccessMode(mapping.accessMode) // for now, access mode is only applied on copy operations, in order to preserve the permissions of the original file
         
         let copyOptions = Object.assign({}, globalCopyOptions) // override
         if(_.has(mapping, 'flags')) {
@@ -94,7 +96,27 @@ jsonfile.readFile(mappingsPath, (err, obj) => {
             case 'copy':
               fs.copy(file, destination, copyOptions)
                 .then(() => console.log('File \'' + file + '\' successfully copied to \'' + destination + '\'.'))
+                .then(() => if(accessMode) )
                 .catch(err => console.error(err))
+              
+              async.series([
+                callback => {
+                  fs.copy(file, destination, copyOptions)
+                    .then(() => console.log('File \'' + file + '\' successfully copied to \'' + destination + '\'.'))
+                    .then(() => callback(null, null))
+                    .catch(err => callback(err, null))
+                },
+                callback => {
+                  if(accessMode) {
+                    exec('chmod ' + accessMode + ' ' + file, { cwd: '/' }, (error, stdout, stderr) => {
+                      console.log('Permissions for copied file \'' + file + '\' have been updated to \'' + accessMode + '\'.')
+                      callback(err, null)
+                    })
+                  }else callback(null, null)
+                }
+              ],
+              (err, results) => if(err) console.error(err))
+              
               break;
             case 'symlink':
                 Promise.resolve({
@@ -127,7 +149,9 @@ jsonfile.readFile(mappingsPath, (err, obj) => {
 
 function parseAccessMode(str) {
 	str = String(str)
-	
-	let octalMatch = octal.exec(str)
-	if(octalMatch) return str
+  
+	if(octal.test(str)) return str
+  if(symbolic.test(str)) return str
+  
+  return null
 }
